@@ -10,20 +10,30 @@
 
 // char exec_this[] = {0x55,0x48,0x89,0xe5,0xc7,0x45,0xfc,0x0a,0x00,0x00,0x00,0x8b,0x45,0xfc,0x5d,0xc3};
 
-char shellcode_buf[shellcode_buflen];
-char expression_buf[expression_buflen];
 
 /* stores in globa expression_buf */
-void get_expresssion_snippet(void){
+void get_expresssion(char * expression_buf){
     printf("enter expression > ");
     fgets(expression_buf, expression_buflen, stdin);
     return;
 }
 
+void call_this(void){
+    FILE *logfile = fopen("build/log.txt", "ab");
+    fprintf(logfile, "you called it!");
+    return;
+}
 
-void expr_to_shellcode(void){
+void write_linker_table(FILE *cfile){
+    fprintf(cfile, "void (*call_this_from_linker)(void) = (void (*)(void ))%#lx;\n", (unsigned long) &call_this);
+    return;
+}
+
+void expression_to_shellcode(char *expression_buf, char *shellcode_buf){
 
     FILE *cfile = fopen("build/expression.c", "wb");
+
+    write_linker_table(cfile);
     fprintf(cfile, "int expression(void){int retval = %s; return retval;}", expression_buf);
     fclose(cfile);
 
@@ -42,10 +52,14 @@ void expr_to_shellcode(void){
 
 
 int main(void){
+
+    char shellcode_buf[shellcode_buflen];
+    char expression_buf[expression_buflen];
+
     while(1){
 
-        get_expresssion_snippet();
-        expr_to_shellcode();
+        get_expresssion(expression_buf);
+        expression_to_shellcode(expression_buf, shellcode_buf);
 
         /* declare pointer to function(void) returning int */
         int (*exec_shellcode)();
