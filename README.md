@@ -163,5 +163,79 @@ __asm__("nop;");
 #2  0x0000555555757a80 in ?? ()
 #3  0x000000c800000017 in ?? ()
 #4  0x00007fffffffdf30 in ?? ()
-#5  0x0000555555554b07 in main () at src/repl.c:80
+#5  0x0000555555554b07 in main () at src/repl.c:80   // this is the call to the casted function pointer aka exec_shellcode():
+```
+
+
+(gdb) x/20i 0x0000555555554b05
+   0x555555554b05 <main+99>:	mov    %eax,-0xc1c(%rbp)
+   0x555555554b0b <main+105>:	nop
+   0x555555554b0c <main+106>:	nop
+   0x555555554b0d <main+107>:	mov    -0xc1c(%rbp),%eax
+   0x555555554b13 <main+113>:	mov    %eax,%esi
+   0x555555554b15 <main+115>:	lea    0x1ad(%rip),%rdi        # 0x555555554cc9
+   0x555555554b1c <main+122>:	mov    $0x0,%eax
+   0x555555554b21 <main+127>:	callq  0x555555554780 <printf@plt>
+   0x555555554b26 <main+132>:	jmp    0x555555554abd <main+27>
+
+
+
+```
+(gdb) disassemble main
+Dump of assembler code for function main:
+[...snip...]
+   0x0000555555554af6 <+84>:	nop
+   0x0000555555554af7 <+85>:	mov    -0xc18(%rbp),%rdx
+   0x0000555555554afe <+92>:	mov    $0x0,%eax
+   0x0000555555554b03 <+97>:	callq  *%rdx
+   0x0000555555554b05 <+99>:	mov    %eax,-0xc1c(%rbp)
+   0x0000555555554b0b <+105>:	nop
+...
+```
+
+The above assembler is the following lines of C:
+
+```
+__asm__("nop;");
+int retval = exec_shellcode();
+__asm__("nop;");
+```
+
+The `nop` instructions are there only to make it easy to spot. They make it very obvious were the relevant assembly intructions are in the disassembly output. The complier has no reason to insert `nop` instructions.
+
+`callq *%rdx` means a function call to the address stored in the `rdx` register, the function pointer to `exec_shellcode`.
+
+```
+(gdb) info registers
+...
+rdx            0x7fffffffd720	140737488344864
+...
+```
+
+(dgb) x/20i 0x7fffffffd720
+(gdb) x/20i 0x7fffffffd720
+   0x7fffffffd720:	push   %rbp
+   0x7fffffffd721:	mov    %rsp,%rbp
+   0x7fffffffd724:	sub    $0x10,%rsp
+   0x7fffffffd728:	int3   
+=> 0x7fffffffd729:	nop
+   0x7fffffffd72a:	mov    $0x2,%edi
+   0x7fffffffd72f:	nop
+   0x7fffffffd730:	movl   $0x2,-0x4(%rbp)
+   0x7fffffffd737:	nop
+   0x7fffffffd738:	mov    $0x2,%edi
+   0x7fffffffd73d:	mov    -0x4(%rbp),%eax
+   0x7fffffffd740:	leaveq
+   0x7fffffffd741:	retq   
+
+
+
+
+
+
+
+
+
+```
+nm -g repl.out | egrep '^[0-9a-e]{8,} T' |awk '{printf "PROVIDE(%s = 0x%s);\n",$3,$1}'
 ```
