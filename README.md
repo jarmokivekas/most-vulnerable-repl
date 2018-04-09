@@ -132,3 +132,36 @@ cdecl> declare foobar as array 10 of pointer to void
 void *foobar[10]
 ```
 Cdecl can also be used in a browser at cdecl.org.
+
+
+
+
+
+
+
+
+
+
+
+
+
+--------------
+
+
+# debugging tricks
+
+```
+__asm__("nop;");
+__asm__("nop;");
+__asm__("nop;");
+```
+
+```
+(dgb) where
+#0  0x0000000000000000 in ?? ()
+#1  0x00007fffffffd731 in ?? ()
+#2  0x0000555555757a80 in ?? ()
+#3  0x000000c800000017 in ?? ()
+#4  0x00007fffffffdf30 in ?? ()
+#5  0x0000555555554b07 in main () at src/repl.c:80
+```

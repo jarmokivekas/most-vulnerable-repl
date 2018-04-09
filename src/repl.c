@@ -1,4 +1,4 @@
-/* printf, fgets, dprintf*/
+    /* printf, fgets, dprintf*/
 #include <stdio.h>
 /* system() */
 #include <stdlib.h>
@@ -24,8 +24,14 @@ void call_this(void){
     return;
 }
 
+unsigned long address_of_call_this(void){
+    return (unsigned long) &call_this;
+}
+
 void write_linker_table(FILE *cfile){
-    fprintf(cfile, "void (*call_this_from_linker)(void) = (void (*)(void ))%#lx;\n", (unsigned long) &call_this);
+
+    fprintf(cfile, "void (*call_this_from_linker)(void) = (void (*)(void ))%#lx;\n", address_of_call_this());
+    // fprintf(cfile, "void (*call_this_from_linker)(void) = (void (*)(void ))%#lx;\n", (unsigned long) &call_this);
     return;
 }
 
@@ -34,7 +40,17 @@ void expression_to_shellcode(char *expression_buf, char *shellcode_buf){
     FILE *cfile = fopen("build/expression.c", "wb");
 
     write_linker_table(cfile);
-    fprintf(cfile, "int expression(void){int retval = %s; return retval;}", expression_buf);
+    fprintf(cfile,
+
+    "#include <signal.h>\n\
+    int expression(void){\n\
+        __asm__(\"nop; \");\n\
+        raise(SIGINT);\n\
+        __asm__(\"nop; \");\n\
+        int retval = %s;\n\
+        __asm__(\"nop; \");\n\
+        raise(SIGINT);\n\
+        return retval;\n}", expression_buf);
     fclose(cfile);
 
     system("make shellcode > /dev/null");
@@ -52,21 +68,26 @@ void expression_to_shellcode(char *expression_buf, char *shellcode_buf){
 
 
 int main(void){
-
+    __asm__("nop;");
     char shellcode_buf[shellcode_buflen];
     char expression_buf[expression_buflen];
 
     while(1){
 
         get_expresssion(expression_buf);
-        expression_to_shellcode(expression_buf, shellcode_buf);
 
+        expression_to_shellcode(expression_buf, shellcode_buf);
+        __asm__("nop;");
+        __asm__("nop;");
         /* declare pointer to function(void) returning int */
         int (*exec_shellcode)();
         /* cast shellcode buf to function pointer */
         exec_shellcode = (int(*)())shellcode_buf;
-
+        __asm__("nop;");
+        __asm__("nop;");
         int retval = exec_shellcode();
+        __asm__("nop;");
+        __asm__("nop;");
         printf("%i\n", retval);
     }
     return 0;
