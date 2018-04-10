@@ -38,9 +38,9 @@ void write_linker_table(FILE *linker_file){
 
 void expression_to_shellcode(char *expression_buf, char *shellcode_buf){
 
-    FILE *linker_file = fopen("build/linker-table.json", "wb");
-    write_linker_table(linker_file);
-    fclose(linker_file);
+    // FILE *linker_file = fopen("build/linker-table.json", "wb");
+    // write_linker_table(linker_file);
+    // fclose(linker_file);
 
     FILE *shellcode_source = fopen("build/expression.c", "wb");
     fprintf(shellcode_source, SHELLCODE_C_FILE_CONTENTS, expression_buf);
@@ -62,7 +62,6 @@ void expression_to_shellcode(char *expression_buf, char *shellcode_buf){
 
 
 int main(void){
-    char shellcode_buf[shellcode_buflen];
     char expression_buf[expression_buflen];
 
     while(1){
@@ -73,6 +72,7 @@ int main(void){
         int (*exec_shellcode)();
         /* cast shellcode buf to function pointer */
         exec_shellcode = (int(*)())shellcode_buf;
+        __asm__("int $3");
         int retval = exec_shellcode();
         printf("%i\n", retval);
     }
