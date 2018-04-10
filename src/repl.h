@@ -15,5 +15,5 @@
 
 
 void callback_2(uint8_t val);
-void call_this(void);
+void callback(void);
 char shellcode_buf[shellcode_buflen];

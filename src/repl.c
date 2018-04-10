@@ -16,23 +16,23 @@ void callback_2(uint8_t val){
     return;
 }
 
-void call_this(void){
+void callback(void){
     // FILE *logfile = fopen("./build/log.txt", "a");
     printf("##############callback executed!");
     return;
 }
 
-unsigned long address_of_call_this(void){
-    return (unsigned long) &call_this;
+unsigned long address_of_callback(void){
+    return (unsigned long) &callback;
 }
 
 void write_linker_table(FILE *linker_file){
     fprintf(linker_file, "{\n" );          //begin json object
     fprintf(linker_file, "%s\n", "functions: [\n" );
-    fprintf(linker_file, "    \"%s\"    :  \"%#lx\",\n"    , "call_this", (unsigned long) &call_this);
-    fprintf(linker_file, "    \"%s\"    :  \"%#lx\",\n"    , "call_this", (unsigned long) &call_this);
+    fprintf(linker_file, "    \"%s\"    :  \"%#lx\",\n"    , "callback", (unsigned long) &callback);
+    fprintf(linker_file, "    \"%s\"    :  \"%#lx\",\n"    , "callback", (unsigned long) &callback);
     fprintf(linker_file, "%s\n", "]" );
-    // fprintf(cfile, "void (*call_this_from_linker)(void) = (void (*)(void ))%#lx;\n", (unsigned long) &call_this);
+    // fprintf(cfile, "void (*callback_from_linker)(void) = (void (*)(void ))%#lx;\n", (unsigned long) &callback);
     return;
 }
 

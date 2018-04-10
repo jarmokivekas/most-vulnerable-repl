@@ -239,3 +239,8 @@ rdx            0x7fffffffd720	140737488344864
 ```
 nm -g repl.out | egrep '^[0-9a-e]{8,} T' |awk '{printf "PROVIDE(%s = 0x%s);\n",$3,$1}'
 ```
+
+
+jarmo@jarmo-ThinkPad-T430s:~/Projects/c-repl$ nm build/repl.out | egrep 'T callback|B shellcode_buf'
+0000000000000969 T callback
+0000000000202040 B shellcode_buf
